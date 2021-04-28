@@ -1,5 +1,9 @@
 import * as React from "react";
 
 export const Header = () => {
-  return <h1>BUTTON</h1>;
+ return (
+   <div>
+     <h6>Automatically load rich diffs for Github PRs</h6>
+   </div>
+ )
 };
