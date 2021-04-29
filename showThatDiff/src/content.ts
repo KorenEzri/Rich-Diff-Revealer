@@ -1,7 +1,8 @@
 import pixelmatch from "pixelmatch";
+import { PopUpSettings } from "./types";
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
 const swipeBar = document.getElementsByClassName("swipe-bar")[0];
-let popUpSettings: any;
+let popUpSettings: PopUpSettings;
 let popUpOpen = false;
 let diffWindow: Window | null;
 let allSwipeButtons: (Element | string)[] = [];
@@ -191,7 +192,7 @@ const getAutomaticRichDiffs = async () => {
           makeSliderMove(swipeShell);
         }, 70);
       }
-    }, 1000);
+    }, 300);
   };
   await getRichDiffs();
 };

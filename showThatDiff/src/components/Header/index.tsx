@@ -3,7 +3,7 @@ import * as React from "react";
 export const Header = () => {
  return (
    <div>
-     <h6>Automatically load rich diffs for Github PRs</h6>
+     <h3>Automatically load & view rich diffs for Github PRs!</h3>
    </div>
  )
 };
