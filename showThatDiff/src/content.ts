@@ -1,6 +1,8 @@
 import pixelmatch from "pixelmatch";
-let allSwipeButtons: (Element | string)[] = [];
+const swipeShell = document.getElementsByClassName("swipe-shell")[0];
+const swipeBar = document.getElementsByClassName("swipe-bar")[0];
 let diffWindow: Window | null;
+let allSwipeButtons: (Element | string)[] = [];
 const imageToUint8Array = async (image: HTMLImageElement, context: any) => {
   return new Promise((resolve, reject) => {
     context.width = image.width;
@@ -49,6 +51,29 @@ const differentiateImages = async () => {
     return hasDiff;
   });
 };
+const makeSliderMove = (slider: HTMLElement) => {
+  const width = slider.style.width.match(/(\d+)/);
+  let widthNumber: number;
+  if (width) {
+    widthNumber = Number(width[0]);
+    let count = 0;
+    for (let i = 0; i < 70; i++) {
+      if (widthNumber) {
+        count++;
+        if (count > 10) {
+          slider.setAttribute("style", `width:${widthNumber - 2}px;`);
+          widthNumber = widthNumber - 2;
+          if (widthNumber <= 0) {
+            widthNumber = 848;
+            slider.setAttribute("style", `width:${848}px;`);
+          }
+          console.log(widthNumber);
+          count = 0;
+        }
+      }
+    }
+  }
+};
 const openDiffWindow = () => {
   const allListItems = document.getElementsByTagName("DIV");
   const relevantDivs: Element[] = [];
@@ -66,7 +91,14 @@ const openDiffWindow = () => {
         if (iframeNode) {
           const popup =
             "https://render.githubusercontent.com/diff/img?color_mode=dark&commit=1ca266d144c76a34e7bed8f58aa3315aa32b2477&enc_url1=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f477579536572666174792f616e74642d6578616d706c652f316361323636643134346337366133346537626564386635386161333331356161333262323437372f636c69656e742f73637265656e73686f74732f73686f74732f6d61696e2f686f6d65706167652e706e67&enc_url2=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f477579536572666174792f616e74642d6578616d706c652f613066363263636631396561353035326361386666346362396463386139316461316639373032372f636c69656e742f73637265656e73686f74732f73686f74732f6d61696e2f686f6d65706167652e706e67&path=client%2Fscreenshots%2Fshots%2Fmain%2Fhomepage.png&repository_id=362161525&size1=60985&size2=66395#aa4b6ca1-b07b-4206-8d90-481b017c6016";
-          diffWindow = window.open(popup, "newwindow", "width=900,height=600");
+          diffWindow = window.open(popup, "newwindow", "width=750,height=400");
+          //   iframe.src = popup;
+          //   iframe.style.position = "fixed";
+          //   iframe.style.top = "150px";
+          //   iframe.style.zIndex = "9001";
+          //   iframe.style.width = "600px";
+          //   iframe.style.height = "400px";
+          //   document.body.appendChild(iframe);
         }
       }
     });
@@ -78,26 +110,37 @@ const openDiffWindow = () => {
   });
 };
 const getAutomaticRichDiffs = async () => {
-  const allRelevantButtons = document.getElementsByClassName(
-    "btn btn-sm BtnGroup-item tooltipped tooltipped-w rendered js-rendered"
-  );
-  Array.from(allRelevantButtons).forEach((button) => {
-    if (button instanceof HTMLElement) {
-      button.click();
-    }
-  });
-  //   await differentiateImages();
-  let once = false;
-  if (!once) {
-    setTimeout(() => {
-      openDiffWindow();
-      getAllSwipeButtons();
+  const getRichDiffs = async () => {
+    const allRelevantButtons = document.getElementsByClassName(
+      "btn btn-sm BtnGroup-item tooltipped tooltipped-w rendered js-rendered"
+    );
+    Array.from(allRelevantButtons).forEach((button) => {
+      if (button instanceof HTMLElement) {
+        button.click();
+      }
+    });
+    //   await differentiateImages();
+    let once = false;
+    if (!once) {
       setTimeout(() => {
-        clickSwipeButtons(allSwipeButtons);
-      }, 500);
-    }, 1500);
-    once = true;
-  }
+        openDiffWindow();
+        getAllSwipeButtons();
+        setTimeout(() => {
+          clickSwipeButtons(allSwipeButtons);
+          if (
+            swipeShell instanceof HTMLElement &&
+            swipeBar instanceof HTMLElement
+          ) {
+            setInterval(() => {
+              makeSliderMove(swipeShell);
+            }, 70);
+          }
+        }, 500);
+      }, 1500);
+      once = true;
+    }
+  };
+  await getRichDiffs();
 };
 const getAllSwipeButtons = () => {
   const allControlButtons = document.getElementsByClassName(
@@ -115,16 +158,28 @@ const clickSwipeButtons = (buttons: (string | Element)[]) => {
   const diffWindowContainer = document.getElementsByClassName(
     "render-shell js-render-shell"
   );
-  const diffImage = document.getElementsByClassName("swipe view");
-  if (diffImage instanceof HTMLElement) {
-    diffImage.style.transform = "scale(20%)";
+  const controlBar = document.getElementsByClassName(
+    "js-render-bar render-bar render-bar-with-modes"
+  );
+  const html = document.querySelector("html");
+  const container = diffWindowContainer[0];
+  if (controlBar instanceof HTMLElement) {
+    controlBar.setAttribute("hidden", "true");
   }
-  //   const container = diffWindowContainer[0];
-  //   if (container instanceof HTMLElement && diffImage instanceof HTMLElement) {
-  //     console.log("EHRE");
-  //     container.style.transform = "scale(0.6)";
-  //     diffImage.style.transform = "scale(0.6)";
-  //   }
+  if (html instanceof HTMLHtmlElement) {
+    document.body.style.margin = "-10px";
+    html.style.margin = "-10px";
+  }
+  if (container instanceof HTMLElement) {
+    container.style.transform = "scale(0.5)";
+    container.style.width = "1px";
+    const containerChild = container.lastElementChild;
+    if (containerChild instanceof HTMLElement) {
+      containerChild.style.transform = "scale(0.78)";
+      containerChild.style.marginTop = "-170px";
+      containerChild.style.marginRight = "220px";
+    }
+  }
   const swipeButton: any = buttons[0];
   swipeButton.click();
 };
