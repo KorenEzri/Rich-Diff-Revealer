@@ -1,8 +1,11 @@
 import pixelmatch from "pixelmatch";
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
 const swipeBar = document.getElementsByClassName("swipe-bar")[0];
+let popUpSettings: any;
+let popUpOpen = false;
 let diffWindow: Window | null;
 let allSwipeButtons: (Element | string)[] = [];
+let iframeElement: HTMLIFrameElement;
 const imageToUint8Array = async (image: HTMLImageElement, context: any) => {
   return new Promise((resolve, reject) => {
     context.width = image.width;
@@ -51,6 +54,48 @@ const differentiateImages = async () => {
     return hasDiff;
   });
 };
+const isElementInViewport = (el: HTMLElement) => {
+  let rect;
+  if (el instanceof HTMLIFrameElement) {
+    rect = el.getBoundingClientRect();
+  }
+  if (!rect) {
+    return;
+  }
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <=
+      (window.innerHeight ||
+        document.documentElement.clientHeight) /* or $(window).height() */ &&
+    rect.right <=
+      (window.innerWidth ||
+        document.documentElement.clientWidth) /* or $(window).width() */
+  );
+};
+const onVisibilityChange = (el: HTMLElement, callback: Function) => {
+  const visible = isElementInViewport(el);
+  if (visible && popUpSettings) {
+    if (popUpOpen) return;
+    popUpOpen = true;
+    diffWindow = window.open(
+      popUpSettings.popup,
+      popUpSettings.newwindow,
+      popUpSettings.width
+    );
+  } else {
+    popUpOpen = false;
+    diffWindow?.close();
+  }
+};
+const handler = () => {
+  if (diffWindow)
+    onVisibilityChange(iframeElement, function () {
+      if (diffWindow) {
+        diffWindow.close();
+      }
+    });
+};
 const makeSliderMove = (slider: HTMLElement) => {
   const width = slider.style.width.match(/(\d+)/);
   let widthNumber: number;
@@ -67,7 +112,6 @@ const makeSliderMove = (slider: HTMLElement) => {
             widthNumber = 848;
             slider.setAttribute("style", `width:${848}px;`);
           }
-          console.log(widthNumber);
           count = 0;
         }
       }
@@ -89,9 +133,24 @@ const openDiffWindow = () => {
       if (node.classList.contains("render-wrapper")) {
         const iframeNode = node.lastElementChild;
         if (iframeNode) {
-          const popup =
-            "https://render.githubusercontent.com/diff/img?color_mode=dark&commit=1ca266d144c76a34e7bed8f58aa3315aa32b2477&enc_url1=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f477579536572666174792f616e74642d6578616d706c652f316361323636643134346337366133346537626564386635386161333331356161333262323437372f636c69656e742f73637265656e73686f74732f73686f74732f6d61696e2f686f6d65706167652e706e67&enc_url2=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f477579536572666174792f616e74642d6578616d706c652f613066363263636631396561353035326361386666346362396463386139316461316639373032372f636c69656e742f73637265656e73686f74732f73686f74732f6d61696e2f686f6d65706167652e706e67&path=client%2Fscreenshots%2Fshots%2Fmain%2Fhomepage.png&repository_id=362161525&size1=60985&size2=66395#aa4b6ca1-b07b-4206-8d90-481b017c6016";
-          diffWindow = window.open(popup, "newwindow", "width=750,height=400");
+          let popup;
+          if (iframeNode.lastElementChild instanceof HTMLIFrameElement) {
+            iframeElement = iframeNode.lastElementChild;
+          }
+          if (iframeElement && iframeElement instanceof HTMLIFrameElement) {
+            popup = `${iframeElement.src}`;
+          }
+          popUpSettings = {
+            popup,
+            newwindow: "newWindow",
+            width: "width=750,height=400",
+          };
+          diffWindow = window.open(
+            popUpSettings.popup,
+            popUpSettings.newwindow,
+            popUpSettings.width
+          );
+          diffWindow?.close();
           //   iframe.src = popup;
           //   iframe.style.position = "fixed";
           //   iframe.style.top = "150px";
@@ -120,25 +179,19 @@ const getAutomaticRichDiffs = async () => {
       }
     });
     //   await differentiateImages();
-    let once = false;
-    if (!once) {
-      setTimeout(() => {
-        openDiffWindow();
-        getAllSwipeButtons();
-        setTimeout(() => {
-          clickSwipeButtons(allSwipeButtons);
-          if (
-            swipeShell instanceof HTMLElement &&
-            swipeBar instanceof HTMLElement
-          ) {
-            setInterval(() => {
-              makeSliderMove(swipeShell);
-            }, 70);
-          }
-        }, 500);
-      }, 1500);
-      once = true;
-    }
+    setTimeout(() => {
+      openDiffWindow();
+      getAllSwipeButtons();
+      clickSwipeButtons(allSwipeButtons);
+      if (
+        swipeShell instanceof HTMLElement &&
+        swipeBar instanceof HTMLElement
+      ) {
+        setInterval(() => {
+          makeSliderMove(swipeShell);
+        }, 70);
+      }
+    }, 1000);
   };
   await getRichDiffs();
 };
@@ -183,5 +236,13 @@ const clickSwipeButtons = (buttons: (string | Element)[]) => {
   const swipeButton: any = buttons[0];
   swipeButton.click();
 };
-window.addEventListener("DOMContentLoaded", getAutomaticRichDiffs);
+window.addEventListener("DOMContentLoaded", async () => {
+  setTimeout(async () => {
+    await getAutomaticRichDiffs();
+  }, 1000);
+});
+
 getAutomaticRichDiffs();
+window.addEventListener("scroll", () => {
+  handler();
+});
