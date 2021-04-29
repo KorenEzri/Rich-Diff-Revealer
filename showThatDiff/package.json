@@ -30,6 +30,11 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
+    "@types/pixelmatch": "^5.2.3",
+    "nock": "^13.0.11",
+    "nock-puppeteer": "^1.0.6",
+    "pixelmatch": "^5.2.1",
+    "puppeteer": "^9.0.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-hot-loader": "^4.13.0"
