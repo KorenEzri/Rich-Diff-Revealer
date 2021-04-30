@@ -4,8 +4,8 @@ import {
   isElementInViewport,
   makeSliderMove,
   getElementsByClassName,
+  getContaienrGrandchildrenByClassName,
 } from "./content-utils";
-
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
 const swipeBar = document.getElementsByClassName("swipe-bar")[0];
 let popUpSettings: PopUpSettings;
@@ -13,6 +13,7 @@ let popUpOpen = false;
 let diffWindow: Window | null;
 let allSwipeButtons: (Element | string)[] = [];
 let iframeElement: HTMLIFrameElement;
+
 const openWindow = (popUpSettings: PopUpSettings) => {
   return window.open(
     popUpSettings.popup,
@@ -38,11 +39,10 @@ const onVisibilityChange = (el: HTMLElement) => {
 const scrollHandler = () => {
   if (diffWindow) onVisibilityChange(iframeElement);
 };
-const handleDiffWindowOpening = (nodeList: Element[]) => {
+const handleDiffWindowOpening = (iframeContainers: Element[]) => {
   let popup: string;
-  nodeList.forEach((node) => {
-    if (!node.classList.contains("render-wrapper")) return;
-    const iframeNode = node.lastElementChild;
+  iframeContainers.forEach((container) => {
+    const iframeNode = container.lastElementChild;
     if (!iframeNode) return;
     if (iframeNode.lastElementChild instanceof HTMLIFrameElement) {
       iframeElement = iframeNode.lastElementChild;
@@ -80,7 +80,11 @@ const openDiffWindow = () => {
   );
   const swipeButtons: Element[] = [];
   allPageContainers.forEach((div) => {
-    handleDiffWindowOpening(Array.from(div.children));
+    const iframeContainers = getContaienrGrandchildrenByClassName(
+      Array.from(div.children),
+      "render-wrapper"
+    );
+    handleDiffWindowOpening(iframeContainers);
   });
   swipeButtons.forEach((button) => {
     if (button && button instanceof HTMLElement) {
@@ -88,31 +92,15 @@ const openDiffWindow = () => {
     }
   });
 };
-const getAutomaticRichDiffs = async () => {
-  const getRichDiffs = async () => {
-    const allRelevantButtons = document.getElementsByClassName(
-      "btn btn-sm BtnGroup-item tooltipped tooltipped-w rendered js-rendered"
-    );
-    Array.from(allRelevantButtons).forEach((button) => {
-      if (button instanceof HTMLElement) {
-        button.click();
-      }
-    });
-    setTimeout(() => {
-      openDiffWindow();
-      getAllSwipeButtons();
-      clickSwipeButtons(allSwipeButtons);
-      if (
-        swipeShell instanceof HTMLElement &&
-        swipeBar instanceof HTMLElement
-      ) {
-        setInterval(() => {
-          makeSliderMove(swipeShell, 848);
-        }, 70);
-      }
-    }, 300);
-  };
-  await getRichDiffs();
+const getAndClickRichDiffBtns = () => {
+  const allRelevantButtons = document.getElementsByClassName(
+    "btn btn-sm BtnGroup-item tooltipped tooltipped-w rendered js-rendered"
+  );
+  Array.from(allRelevantButtons).forEach((button) => {
+    if (button instanceof HTMLElement) {
+      button.click();
+    }
+  });
 };
 const getAllSwipeButtons = () => {
   const allControlButtons = document.getElementsByClassName(
@@ -126,7 +114,7 @@ const getAllSwipeButtons = () => {
     })
     .filter((element) => element !== "null");
 };
-const clickSwipeButtons = (buttons: (string | Element)[]) => {
+const stylePopupWindow = () => {
   const diffWindowContainer = document.getElementsByClassName(
     "render-shell js-render-shell"
   );
@@ -152,8 +140,30 @@ const clickSwipeButtons = (buttons: (string | Element)[]) => {
       containerChild.style.marginRight = "220px";
     }
   }
+};
+const clickSwipeButtons = (buttons: (string | Element)[]) => {
   const swipeButton: any = buttons[0];
   swipeButton.click();
+};
+const getAutomaticRichDiffs = async () => {
+  getAndClickRichDiffBtns();
+  const getRichDiffs = async () => {
+    setTimeout(() => {
+      openDiffWindow();
+      getAllSwipeButtons();
+      stylePopupWindow();
+      clickSwipeButtons(allSwipeButtons);
+      if (
+        swipeShell instanceof HTMLElement &&
+        swipeBar instanceof HTMLElement
+      ) {
+        setInterval(() => {
+          makeSliderMove(swipeShell, 848);
+        }, 70);
+      }
+    }, 300);
+  };
+  await getRichDiffs();
 };
 window.addEventListener("DOMContentLoaded", async () => {
   setTimeout(async () => {

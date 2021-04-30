@@ -141,23 +141,14 @@ export const getElementsByClassName = (className: string) => {
   });
   return relevantDivs;
 };
-// export const getContaienrGrandchildrenByClassName = (
-//   containerChildren: Element[],
-//   classNameFirst: string
-// ) => {
-//   const firstChildNodes: Element[] = [];
-//   containerChildren.forEach((div) => {
-//     if (!div.classList.contains(classNameFirst)) return;
-//     const iFrameNode = div.lastElementChild;
-//     if (!iFrameNode) return;
-//     if (iFrameNode.lastElementChild instanceof HTMLIFrameElement) {
-//     }
-//     console.log("INSIDE GET CONTAINER GRANDCHILDREN : ", divChildNodes);
-//     divChildNodes.forEach((childNode) => {
-//       if (childNode.classList.contains(classNameFirst)) {
-//         firstChildNodes.push(childNode);
-//       }
-//     });
-//   });
-//   return Array.from(firstChildNodes);
-// };
+export const getContaienrGrandchildrenByClassName = (
+  containerChildren: Element[],
+  classNameFirst: string
+) => {
+  const firstChildNodes: Element[] = [];
+  containerChildren.forEach((div) => {
+    if (!div.classList.contains(classNameFirst)) return;
+    else firstChildNodes.push(div);
+  });
+  return Array.from(firstChildNodes);
+};
