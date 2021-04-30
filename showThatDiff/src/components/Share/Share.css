@@ -1,0 +1,34 @@
+body {
+  border: none !important;
+}
+
+section {
+  background: #eee;
+  border: solid 1px #ddd;
+  display: block;
+  width: 80%;
+  max-width: 660px;
+  padding: 20px;
+  margin: 20px auto;
+}
+
+.share_button {
+  cursor: pointer;
+  margin-top: 60px;
+}
+
+.share_container {
+  cursor: pointer;
+  margin: 12px !important;
+}
+
+.share_link {
+  padding-left: 25px !important;
+}
+
+img {
+  cursor: pointer;
+  margin-left: 12px;
+  padding-left: 12px;
+}
+/*# sourceMappingURL=Share.css.map */

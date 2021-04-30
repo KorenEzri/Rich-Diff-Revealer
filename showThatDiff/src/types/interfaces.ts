@@ -16,6 +16,24 @@ export interface User {
   isAdmin: boolean;
 }
 
+export interface ShareSettings {
+  url: string;
+  text: string;
+  userId: string;
+  hashTags: string;
+  title: string;
+  image: string;
+  desc: string;
+  redirecturl: string;
+  via: string;
+  hashtags: string;
+  userid: string;
+  category: string;
+  emailaddress: string;
+  cemailaddress: string;
+  bccemailaddress: string;
+}
+
 export interface PopUpSettings {
   popup: string | undefined;
   newwindow: string | undefined;
