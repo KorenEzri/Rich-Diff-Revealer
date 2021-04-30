@@ -131,3 +131,33 @@ export const makeSliderMove = (slider: HTMLElement, starterWidth: number) => {
     }
   }
 };
+export const getElementsByClassName = (className: string) => {
+  const allDivs = Array.from(document.getElementsByTagName("DIV"));
+  const relevantDivs: Element[] = [];
+  allDivs.forEach((div) => {
+    if (div.classList.contains(className)) {
+      relevantDivs.push(div);
+    }
+  });
+  return relevantDivs;
+};
+// export const getContaienrGrandchildrenByClassName = (
+//   containerChildren: Element[],
+//   classNameFirst: string
+// ) => {
+//   const firstChildNodes: Element[] = [];
+//   containerChildren.forEach((div) => {
+//     if (!div.classList.contains(classNameFirst)) return;
+//     const iFrameNode = div.lastElementChild;
+//     if (!iFrameNode) return;
+//     if (iFrameNode.lastElementChild instanceof HTMLIFrameElement) {
+//     }
+//     console.log("INSIDE GET CONTAINER GRANDCHILDREN : ", divChildNodes);
+//     divChildNodes.forEach((childNode) => {
+//       if (childNode.classList.contains(classNameFirst)) {
+//         firstChildNodes.push(childNode);
+//       }
+//     });
+//   });
+//   return Array.from(firstChildNodes);
+// };

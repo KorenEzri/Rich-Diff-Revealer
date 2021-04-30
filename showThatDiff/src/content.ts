@@ -3,6 +3,7 @@ import {
   generateShareLinks,
   isElementInViewport,
   makeSliderMove,
+  getElementsByClassName,
 } from "./content-utils";
 
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
@@ -12,7 +13,13 @@ let popUpOpen = false;
 let diffWindow: Window | null;
 let allSwipeButtons: (Element | string)[] = [];
 let iframeElement: HTMLIFrameElement;
-
+const openWindow = (popUpSettings: PopUpSettings) => {
+  return window.open(
+    popUpSettings.popup,
+    popUpSettings.newwindow,
+    popUpSettings.width
+  );
+};
 const onVisibilityChange = (el: HTMLElement) => {
   const visible = isElementInViewport(el);
   if (visible && popUpSettings) {
@@ -31,56 +38,49 @@ const onVisibilityChange = (el: HTMLElement) => {
 const scrollHandler = () => {
   if (diffWindow) onVisibilityChange(iframeElement);
 };
-
-const openDiffWindow = () => {
-  const allListItems = Array.from(document.getElementsByTagName("DIV"));
-  const relevantDivs: Element[] = [];
-  const swipeButtons: Element[] = [];
-  allListItems.forEach((item) => {
-    if (item.classList.contains("js-file-content")) {
-      relevantDivs.push(item);
+const handleDiffWindowOpening = (nodeList: Element[]) => {
+  let popup: string;
+  nodeList.forEach((node) => {
+    if (!node.classList.contains("render-wrapper")) return;
+    const iframeNode = node.lastElementChild;
+    if (!iframeNode) return;
+    if (iframeNode.lastElementChild instanceof HTMLIFrameElement) {
+      iframeElement = iframeNode.lastElementChild;
     }
-  });
-  relevantDivs.forEach((div) => {
-    const divChildNodes = Array.from(div.children);
-    divChildNodes.forEach((node) => {
-      let popup: string;
-      if (!node.classList.contains("render-wrapper")) return;
-      const iframeNode = node.lastElementChild;
-      if (!iframeNode) return;
-      if (iframeNode.lastElementChild instanceof HTMLIFrameElement) {
-        iframeElement = iframeNode.lastElementChild;
-      }
-      if (iframeElement instanceof HTMLIFrameElement) {
-        popup = `${iframeElement.src}`;
-        const mainContainers = Array.from(
-          document.getElementsByClassName(
-            "file js-file js-details-container js-targetable-element Details Details--on open display-rich-diff"
-          )
-        );
-        if (mainContainers) {
-          const diffTitle = document.getElementsByClassName(
-            "js-issue-title markdown-title"
-          )[0];
-          mainContainers.forEach((container: Element) => {
-            if (diffTitle.textContent) {
-              generateShareLinks(8, container, popup, diffTitle.textContent);
-            }
-          });
-        }
-        popUpSettings = {
-          popup,
-          newwindow: "newWindow",
-          width: "width=750,height=400",
-        };
-      }
-      diffWindow = window.open(
-        popUpSettings.popup,
-        popUpSettings.newwindow,
-        popUpSettings.width
+    if (iframeElement instanceof HTMLIFrameElement) {
+      popup = `${iframeElement.src}`;
+      const mainContainers = Array.from(
+        document.getElementsByClassName(
+          "file js-file js-details-container js-targetable-element Details Details--on open display-rich-diff"
+        )
       );
-      diffWindow?.close();
-    });
+      if (mainContainers) {
+        const diffTitle = document.getElementsByClassName(
+          "js-issue-title markdown-title"
+        )[0];
+        mainContainers.forEach((container: Element) => {
+          if (diffTitle.textContent) {
+            generateShareLinks(8, container, popup, diffTitle.textContent);
+          }
+        });
+      }
+      popUpSettings = {
+        popup,
+        newwindow: "newWindow",
+        width: "width=750,height=400",
+      };
+    }
+    diffWindow = openWindow(popUpSettings);
+    diffWindow?.close();
+  });
+};
+const openDiffWindow = () => {
+  const allPageContainers: Element[] = getElementsByClassName(
+    "js-file-content"
+  );
+  const swipeButtons: Element[] = [];
+  allPageContainers.forEach((div) => {
+    handleDiffWindowOpening(Array.from(div.children));
   });
   swipeButtons.forEach((button) => {
     if (button && button instanceof HTMLElement) {
