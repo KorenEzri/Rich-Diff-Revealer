@@ -60,7 +60,12 @@ const handleDiffWindowOpening = (iframeContainers: Element[]) => {
         )[0];
         mainContainers.forEach((container: Element) => {
           if (diffTitle.textContent) {
-            generateShareLinks(8, container, popup, diffTitle.textContent);
+            generateShareLinks(
+              8,
+              container,
+              window.location.href,
+              `This is a diff I found on our PR: ${diffTitle.textContent.trim()}`
+            );
           }
         });
       }

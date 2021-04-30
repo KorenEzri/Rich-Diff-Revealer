@@ -35,7 +35,7 @@ export const generateShareLinks = (
     `https://news.ycombinator.com/submitlink?u='${linkToShare}&t=${title}`,
   ];
   const validImages = [
-    "https://cdn1.iconfinder.com/data/icons/outline-imperial-seo/128/SEO_C_50_09.12.14-1_Artboard_15-256.png",
+    "https://i.pinimg.com/originals/8f/c3/7b/8fc37b74b608a622588fbaa361485f32.png",
     "https://cdn2.iconfinder.com/data/icons/social-media-2285/512/1_Facebook2_colored_svg-128.png",
     "https://cdn0.iconfinder.com/data/icons/yooicons_set01_socialbookmarks/256/social_google_box.png",
     "https://simplesharebuttons.com/images/somacro/linkedin.png",
