@@ -18,7 +18,7 @@ const openWindow = (popUpSettings: PopUpSettings) => {
   return window.open(
     popUpSettings.popup,
     popUpSettings.newwindow,
-    popUpSettings.width
+    popUpSettings.width,
   );
 };
 const onVisibilityChange = (el: HTMLElement) => {
@@ -72,7 +72,7 @@ const handleDiffWindowOpening = (iframeContainers: Element[]) => {
       popUpSettings = {
         popup,
         newwindow: "newWindow",
-        width: "width=750,height=400",
+        width: "width=750,height=400,titlebar=no,toolbar=no",
       };
     }
     diffWindow = openWindow(popUpSettings);
@@ -136,12 +136,12 @@ const stylePopupWindow = () => {
     html.style.margin = "-10px";
   }
   if (container instanceof HTMLElement) {
-    container.style.transform = "scale(0.5)";
+    container.style.transform = "scale(0.8)";
     container.style.width = "1px";
     const containerChild = container.lastElementChild;
     if (containerChild instanceof HTMLElement) {
-      containerChild.style.transform = "scale(0.78)";
-      containerChild.style.marginTop = "-170px";
+      containerChild.style.transform = "scale(0.9)";
+      containerChild.style.marginTop = "-70px";
       containerChild.style.marginRight = "220px";
     }
   }
