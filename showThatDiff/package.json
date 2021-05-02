@@ -41,6 +41,7 @@
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-hot-loader": "^4.13.0",
-    "react-share": "^4.4.0"
+    "react-share": "^4.4.0",
+    "react-tiny-link": "^3.6.1"
   }
 }

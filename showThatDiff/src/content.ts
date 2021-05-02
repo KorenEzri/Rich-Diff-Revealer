@@ -14,7 +14,7 @@ let popUpOpen = false;
 let diffWindow: Window | null;
 let allSwipeButtons: (Element | string)[] = [];
 let iframeElement: HTMLIFrameElement;
-
+document.body.style.overflowX = "hidden";
 const openWindow = (popUpSettings: PopUpSettings) => {
   return window.open(
     popUpSettings.popup,
