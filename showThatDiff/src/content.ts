@@ -14,11 +14,23 @@ let diffWindow: Window | null;
 let allSwipeButtons: (Element | string)[] = [];
 let iframeElement: HTMLIFrameElement;
 
+const observerCallback = (mutationList: any[], observer: any) => {
+  mutationList.forEach((mutation) => {
+    switch (mutation.type) {
+      case "childList":
+        console.log(mutation.target);
+        break;
+      case "attributes":
+        console.log(mutation.target);
+        break;
+    }
+  });
+};
 const openWindow = (popUpSettings: PopUpSettings) => {
   return window.open(
     popUpSettings.popup,
     popUpSettings.newwindow,
-    popUpSettings.width,
+    popUpSettings.width
   );
 };
 const onVisibilityChange = (el: HTMLElement) => {
@@ -170,12 +182,32 @@ const getAutomaticRichDiffs = async () => {
   };
   await getRichDiffs();
 };
-window.addEventListener("DOMContentLoaded", async () => {
+const initAction = () => {
+  const targetNode: any = document.getElementsByClassName(
+    "btn btn-sm BtnGroup-item tooltipped tooltipped-w rendered js-rendered"
+  )[0];
+  const observerOptions = {
+    childList: true,
+    attributes: true,
+    subtree: true,
+  };
+  const observer = new MutationObserver(observerCallback);
+  let irrelevant = false;
+  try {
+    observer.observe(targetNode, observerOptions);
+    irrelevant = false;
+  } catch ({ message }) {
+    irrelevant = true;
+    console.log(message);
+  }
+  if (irrelevant) return;
   setTimeout(async () => {
     await getAutomaticRichDiffs();
   }, 1000);
-});
-getAutomaticRichDiffs();
+};
+initAction();
 window.addEventListener("scroll", () => {
   scrollHandler();
 });
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
