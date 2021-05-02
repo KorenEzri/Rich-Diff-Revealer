@@ -6,6 +6,7 @@ import {
   removeShareLinksFromDOM,
   getElementsByClassName,
   getContaienrGrandchildrenByClassName,
+  compareImages,
 } from "./content-utils";
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
 const swipeBar = document.getElementsByClassName("swipe-bar")[0];
@@ -14,6 +15,8 @@ let popUpOpen = false;
 let diffWindow: Window | null;
 let allSwipeButtons: (Element | string)[] = [];
 let iframeElement: HTMLIFrameElement;
+let addedImage: HTMLImageElement | Element | null;
+let deletedImage: HTMLImageElement | Element | null;
 document.body.style.overflowX = "hidden";
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -195,6 +198,21 @@ const clickSwipeButtons = (buttons: (string | Element)[]) => {
     } else {
       console.log(message);
     }
+  }
+};
+const showDiffImage = () => {
+  addedImage = document.getElementsByClassName("added asset")[0];
+  deletedImage = document.getElementsByClassName("deleted asset")[0];
+  try {
+    console.log(addedImage, deletedImage);
+    if (
+      addedImage instanceof HTMLImageElement &&
+      deletedImage instanceof HTMLImageElement
+    ) {
+      compareImages(addedImage, deletedImage);
+    }
+  } catch ({ meesage }) {
+    console.log(meesage);
   }
 };
 const getAutomaticRichDiffs = async (first: string | undefined) => {

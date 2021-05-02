@@ -233,7 +233,6 @@ const testHost = async () => {
   });
   // chrome.tabs.captureVisibleTab
 };
-
 const logTest = (test) => {
   console.info(
     `--------------------------------------------------------------------------------------------------------------\n -- ${test.name} -- `
@@ -244,7 +243,6 @@ const logTest = (test) => {
     `\n--------------------------------------------------------------------------------------------------------------\n`
   );
 };
-
 const init_test = async () => {
   try {
     console.log(`Hostname: ${host.hostname}`);

@@ -57,6 +57,8 @@ export const MainPage = () => {
           minLine={1}
           url="https://github.com/KorenEzri"
         />
+        </div>
+        <div className="project_link">
         <ReactTinyLink
           cardSize="small"
           showGraphic={false}

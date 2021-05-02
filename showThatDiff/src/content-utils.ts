@@ -1,3 +1,5 @@
+import pixelmatch from "pixelmatch";
+
 export const createElements = (
   type: string,
   attributes: any,
@@ -29,7 +31,7 @@ export const generateShareLinks = (
     `https://www.facebook.com/sharer.php?u=${linkToShare}`,
     `https://www.google.com/bookmarks/mark?op=edit&bkmk=${linkToShare}&title=${title}&annotation=Check out this diff!&labels=diff,testing,supertest`,
     `https://www.linkedin.com/shareArticle?mini=true&amp;url=${linkToShare}`,
-    `javascript:void((function()%7Bvar%20e=window.print();`,
+    `javascript:void((function()%7Bconst%20e=window.print();`,
     `http://reddit.com/submit?url=${linkToShare}&amp;title=Simple${title}`,
     `https://api.whatsapp.com/send?text='${title}%20${linkToShare},`,
     `https://news.ycombinator.com/submitlink?u='${linkToShare}&t=${title}`,
@@ -155,4 +157,72 @@ export const getContaienrGrandchildrenByClassName = (
     else firstChildNodes.push(div);
   });
   return Array.from(firstChildNodes);
+};
+export const compareImages = (
+  imgBefore: HTMLImageElement,
+  imgAfter: HTMLImageElement
+) => {
+  console.log(imgAfter, imgBefore);
+  console.clear();
+  const canvasBefore = convertImageToCanvas(imgBefore);
+  const canvasAfter = convertImageToCanvas(imgAfter);
+
+  const contextBefore = canvasBefore?.getContext("2d");
+  const contextAfter = canvasAfter?.getContext("2d");
+  if (!canvasBefore) return;
+  let imgDataBefore = contextBefore?.getImageData(
+    0,
+    0,
+    canvasBefore.width,
+    canvasBefore.height
+  );
+  if (!canvasAfter) return;
+  let imgDataAfter = contextAfter?.getImageData(
+    0,
+    0,
+    canvasAfter.width,
+    canvasAfter.height
+  );
+
+  const height: any = imgDataBefore?.height;
+  const width: any = imgDataBefore?.width;
+
+  const imgDataOutput: ImageData = new ImageData(width, height);
+
+  const numDiffPixels = pixelmatch(
+    imgDataBefore?.data,
+    imgDataAfter?.data,
+    imgDataOutput.data,
+    width,
+    height,
+    { threshold: 0.1 }
+  );
+  console.log("numDiffPixels =", numDiffPixels);
+  writeResultToPage(imgDataOutput);
+};
+const convertImageToCanvas = (imageElement: HTMLImageElement) => {
+  const canvas = document.createElement("canvas");
+  if (!canvas) return;
+  canvas.width = imageElement.width;
+  canvas.height = imageElement.height;
+  canvas.getContext("2d")?.drawImage(imageElement, 0, 0);
+  return canvas;
+};
+const writeResultToPage = (imgDataOutput: ImageData) => {
+  console.log(
+    "writeResultToPage was called. imgDataOutput.data.length =",
+    imgDataOutput.data.length
+  );
+  const canvas = document.createElement("canvas");
+  canvas.width = imgDataOutput.width;
+  canvas.height = imgDataOutput.height;
+  const canvasContext = canvas.getContext("2d");
+  canvasContext?.putImageData(imgDataOutput, 0, 0);
+  const render_container = document.getElementsByClassName(
+    "render-container js-render-target is-render-automatic is-render-requested is-render-ready"
+  )[0];
+  const render_wrapper = render_container.parentElement;
+  if (!canvasContext || !render_container || !render_wrapper) return;
+  render_wrapper.removeChild(render_container);
+  render_wrapper.appendChild(canvasContext.canvas);
 };
