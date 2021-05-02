@@ -1,8 +1,6 @@
 import * as React from "react";
 import {Header} from "../Header"
 import { ReactTinyLink } from "react-tiny-link";
-import * as gitmage from "./gitmage.jpg"
-import * as revealer from "./revealer.jpg"
 
 export const MainPage = () => {
   return (<div className="homepage_container">
@@ -11,13 +9,11 @@ export const MainPage = () => {
     <ReactTinyLink
         cardSize="small"
         showGraphic={false}
-        defaultMedia={gitmage}
         maxLine={2}
         minLine={1}
         url="https://github.com/KorenEzri"
       />
           <ReactTinyLink
-        defaultMedia={revealer}
         cardSize="small"
         showGraphic={false}
         maxLine={2}
