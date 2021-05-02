@@ -167,12 +167,22 @@ const testHost = async () => {
 };
 
 const logTestResults = () => {
-  console.log(`Hostname: ${host.hostname}`);
-  console.log(`Target URL: ${host.targetUrl}`);
+  console.log(
+    `Hostname: ${host.hostname}`,
+    "background: #ccffff; color: #000000"
+  );
+  console.log(
+    `Target URL: ${host.targetUrl}`,
+    "background: #ccffff; color: #000000"
+  );
   const allTests = Object.keys(tests).filter((key) => key != "generalError");
-  console.log(`%   tests ran: ${allTests.length} %`);
+  console.log(
+    `   tests ran: ${allTests.length} `,
+    "background: #006666; color: #009999"
+  );
   allTests.forEach((test) => {
-    console.log(`% -- ${test} -- %\n    ${tests[test].description}    `);
+    console.log(` -- ${test} -- `, "color: #000066;");
+    console.log(`${tests[test].description}`);
   });
 };
 
