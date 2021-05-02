@@ -1,22 +1,60 @@
 console.log("## Testing Script Start ##");
 
-!(function (o) {
-  (console.old = console.log),
-    (console.log = function () {
-      var n,
-        e,
-        t = "";
-      for (e = 0; e < arguments.length; e++)
-        (t += '<span class="log-' + typeof (n = arguments[e]) + '">'),
-          "object" == typeof n &&
-          "object" == typeof JSON &&
-          "function" == typeof JSON.stringify
-            ? (t += JSON.stringify(n))
-            : (t += n),
-          (t += "</span>&nbsp;");
-      (o.innerHTML += t + "<br>"), console.old.apply(void 0, arguments);
-    });
-})(document.body);
+rewireLoggingToElement(
+  () => document.getElementById("log"),
+  () => document.getElementById("log-container"),
+  true
+);
+function rewireLoggingToElement(eleLocator, eleOverflowLocator, autoScroll) {
+  fixLoggingFunc("log");
+  fixLoggingFunc("debug");
+  fixLoggingFunc("warn");
+  fixLoggingFunc("error");
+  fixLoggingFunc("info");
+  fixLoggingFunc("pass");
+  fixLoggingFunc("fail");
+
+  function fixLoggingFunc(name) {
+    console["old" + name] = console[name];
+    console[name] = function (...arguments) {
+      const output = produceOutput(name, arguments);
+      const eleLog = eleLocator();
+
+      if (autoScroll) {
+        const eleContainerLog = eleOverflowLocator();
+        const isScrolledToBottom =
+          eleContainerLog.scrollHeight - eleContainerLog.clientHeight <=
+          eleContainerLog.scrollTop + 1;
+        eleLog.innerHTML += output + "<br>";
+        if (isScrolledToBottom) {
+          eleContainerLog.scrollTop =
+            eleContainerLog.scrollHeight - eleContainerLog.clientHeight;
+        }
+      } else {
+        eleLog.innerHTML += output + "<br>";
+      }
+
+      console["old" + name].apply(undefined, arguments);
+    };
+  }
+
+  function produceOutput(name, args) {
+    return args.reduce((output, arg) => {
+      return (
+        output +
+        '<span class="log-' +
+        typeof arg +
+        " log-" +
+        name +
+        '">' +
+        (typeof arg === "object" && (JSON || {}).stringify
+          ? JSON.stringify(arg)
+          : arg) +
+        "</span>&nbsp;"
+      );
+    }, "");
+  }
+}
 
 const createElements = (type, attributes, children) => {
   const element = document.createElement(type);
@@ -110,11 +148,13 @@ const host = {
 const tests = {
   generalError: [],
   richDiffWindow: {
+    name: "richDiffWindow",
     description: "Can find share button, can open rich diff window",
     pass: false,
     error: null,
   },
   richDiffWindow_isSexy: {
+    name: "richDiffWindow_isSexy",
     description: "Rich diff window looks gud",
     pass: false,
     error: null,
@@ -125,6 +165,7 @@ const windowResults = [];
 const reader = new FileReader();
 
 const testHost = async () => {
+  const allTestsRan = [];
   chrome.tabs.create({ url: host.targetUrl }, (tab) => {
     chrome.tabs.executeScript(
       tab.id,
@@ -142,62 +183,58 @@ const testHost = async () => {
           );
           return;
         }
-        try {
-          chrome.windows.getAll({ populate: true }, function (wins) {
-            wins.forEach(function (win) {
-              win.tabs.forEach(function (tab) {
-                if (tab.url.match(/https:\/\/render.githubusercontent.com/)) {
-                  windowResults.push(tab.url);
-                  tests.richDiffWindow.pass = true;
-                }
+        setTimeout(() => {
+          try {
+            chrome.windows.getAll({ populate: true }, function (wins) {
+              wins.forEach(function (win) {
+                win.tabs.forEach(function (tab) {
+                  if (tab.url.match(/https:\/\/render.githubusercontent.com/)) {
+                    windowResults.push({ tab: tab.url, winID: win.id });
+                    tests.richDiffWindow.pass = true;
+                  }
+                });
               });
+              chrome.windows.remove(windowResults[0].winID);
+              allTestsRan.push(tests.richDiffWindow);
+              allTestsRan.push(tests.richDiffWindow_isSexy);
+              allTestsRan.forEach((test) => {
+                logTest(test);
+              });
+              console.info(
+                `Finished.\n    tests ran: ${allTestsRan.length} \n`
+              );
+              chrome.tabs.remove(tab.id);
+              if (!windowResults[0]) {
+                tests.richDiffWindow.error = `Nothing found in WindowResults!`;
+              }
             });
-            if (!windowResults[0]) {
-              tests.richDiffWindow.error = `Nothing found in WindowResults!`;
-            }
-          });
-        } catch ({ message }) {
-          tests.richDiffWindow.error = `Error in getAll - ${message}`;
-        }
-        chrome.tabs.remove(tab.id);
+          } catch ({ message }) {
+            tests.richDiffWindow.error = `Error in getAll - ${message}`;
+          }
+        }, 5000);
       }
     );
   });
   // chrome.tabs.captureVisibleTab
 };
 
-const logTestResults = () => {
-  console.log(
-    `Hostname: ${host.hostname}`,
-    "background: #ccffff; color: #000000"
+const logTest = (test) => {
+  console.info(
+    `--------------------------------------------------------------------------------------------------------------\n -- ${test.name} -- `
   );
-  console.log(
-    `Target URL: ${host.targetUrl}`,
-    "background: #ccffff; color: #000000"
+  console.info(`${test.description}\n`);
+  console.warn(`PASSED: ${test.pass}`);
+  console.info(
+    `\n--------------------------------------------------------------------------------------------------------------\n`
   );
-  const allTests = Object.keys(tests).filter((key) => key != "generalError");
-  console.log(
-    `   tests ran: ${allTests.length} `,
-    "background: #006666; color: #009999"
-  );
-  allTests.forEach((test) => {
-    console.log(` -- ${test} -- `, "color: #000066;");
-    console.log(`${tests[test].description}`);
-  });
 };
 
-const displayTestResultsToDOM = () => {
-  const hostname = document.getElementsByClassName("hostname")[0];
-  const targetUrl = document.getElementsByClassName("targetUrl")[0];
-  const shareSectionStatus = document.getElementsByClassName("share")[0];
-  const popUpShowsStatus = document.getElementsByClassName("popup_shows")[0];
-  const popUpSexyStatus = document.getElementsByClassName("popup_sexy")[0];
-};
 const init_test = async () => {
   try {
+    console.log(`Hostname: ${host.hostname}`);
+    console.log(`Target URL: ${host.targetUrl}\n`);
+    console.warn("running...");
     await testHost();
-    logTestResults();
-    displayTestResultsToDOM();
   } catch ({ message }) {
     tests.generalError.push(`Error with testHost(), ${message}`);
   }

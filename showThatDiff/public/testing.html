@@ -2,37 +2,51 @@
 <html lnag="en">
   <head>
     <title>Show That Diff Unittest</title>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <link rel="icon" href="img/icon128.png" />
-    <link href='http://fonts.googleapis.com/css?family=Cabin+Condensed' rel='stylesheet' type='text/css'>
+    <link
+      href="http://fonts.googleapis.com/css?family=Cabin+Condensed"
+      rel="stylesheet"
+      type="text/css"
+    />
 
     <style type="text/css">
-      .pass {
+      #log-container {
+        overflow: auto;
+        height: 350px;
+      }
+
+      .log-warn {
+        color: rgb(94, 63, 204);
+      }
+      .log-error {
+        color: red;
+      }
+      .log-info {
+        color: skyblue;
+      }
+      .log-log {
+        color: silver;
+      }
+      .log-pass {
+        font-weight: bold;
         background-color: green;
       }
-      .fail {
+      .log-fail {
+        font-weight: bold;
         background-color: red;
       }
-      .not_implemented {
-        background-color: grey;
-      }
-      .host {
-        width: 300px;
-        float: left;
-        margin: 10px;
-        padding: 5px;
-        border: 5px solid grey;
-        border-radius: 10px;
-      }
-      .hostname {
-        font-size: 2em;
+      .log-warn,
+      .log-error {
         font-weight: bold;
       }
     </style>
   </head>
   <body>
     <h1>Show That Diff Unittest</h1>
-    <pre id="log" class="pass"></pre>
+    <div id="log-container">
+      <pre id="log"></pre>
+    </div>
     <script src="./tests/testing.js"></script>
   </body>
 </html>
