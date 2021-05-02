@@ -48,3 +48,8 @@
   border-bottom: 1px solid darkred;
   background-color: rgba(139, 0, 0, 0.637);
 }
+.react-switch {
+  vertical-align: middle;
+  margin-left: 4px;
+  margin-bottom: 10px;
+}

@@ -90,6 +90,10 @@ export const generateShareLinks = (
   });
   targetToAppend.appendChild(containerDiv);
 };
+export const removeShareLinksFromDOM = () => {
+  const share_container = document.getElementsByClassName("share_container")[0];
+  share_container.remove();
+};
 export const isElementInViewport = (el: HTMLElement) => {
   let rect;
   if (el instanceof HTMLIFrameElement) {
