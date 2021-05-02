@@ -8,24 +8,14 @@ import {
 } from "./content-utils";
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
 const swipeBar = document.getElementsByClassName("swipe-bar")[0];
+let scaleSize: number;
+let originalHref: string;
 let popUpSettings: PopUpSettings;
 let popUpOpen = false;
 let diffWindow: Window | null;
 let allSwipeButtons: (Element | string)[] = [];
 let iframeElement: HTMLIFrameElement;
 
-const observerCallback = (mutationList: any[], observer: any) => {
-  mutationList.forEach((mutation) => {
-    switch (mutation.type) {
-      case "childList":
-        console.log(mutation.target);
-        break;
-      case "attributes":
-        console.log(mutation.target);
-        break;
-    }
-  });
-};
 const openWindow = (popUpSettings: PopUpSettings) => {
   return window.open(
     popUpSettings.popup,
@@ -131,6 +121,15 @@ const getAllSwipeButtons = () => {
     })
     .filter((element) => element !== "null");
 };
+const determineScaleSize = () => {
+  const width = window.innerWidth;
+  console.log(width);
+  if (width > 1200) {
+    console.log("bigger than 1200");
+  } else {
+    console.log("not bigger than 1200");
+  }
+};
 const stylePopupWindow = () => {
   const diffWindowContainer = document.getElementsByClassName(
     "render-shell js-render-shell"
@@ -148,11 +147,13 @@ const stylePopupWindow = () => {
     html.style.margin = "-10px";
   }
   if (container instanceof HTMLElement) {
-    container.style.transform = "scale(0.8)";
+    container.style.transform = "scale(0.9)";
+    // container.style.transform = "scale(0.8)";
     container.style.width = "1px";
     const containerChild = container.lastElementChild;
     if (containerChild instanceof HTMLElement) {
       containerChild.style.transform = "scale(0.9)";
+      // containerChild.style.transform = "scale(0.9)";
       containerChild.style.marginTop = "-70px";
       containerChild.style.marginRight = "220px";
     }
@@ -178,36 +179,24 @@ const getAutomaticRichDiffs = async () => {
           makeSliderMove(swipeShell, 848);
         }, 70);
       }
-    }, 300);
+    }, 500);
   };
   await getRichDiffs();
 };
-const initAction = () => {
-  const targetNode: any = document.getElementsByClassName(
-    "btn btn-sm BtnGroup-item tooltipped tooltipped-w rendered js-rendered"
-  )[0];
-  const observerOptions = {
-    childList: true,
-    attributes: true,
-    subtree: true,
-  };
-  const observer = new MutationObserver(observerCallback);
-  let irrelevant = false;
-  try {
-    observer.observe(targetNode, observerOptions);
-    irrelevant = false;
-  } catch ({ message }) {
-    irrelevant = true;
-    console.log(message);
-  }
-  if (irrelevant) return;
-  setTimeout(async () => {
-    await getAutomaticRichDiffs();
-  }, 1000);
-};
-initAction();
+getAutomaticRichDiffs();
+window.addEventListener("DOMContentLoaded", async () => {
+  await getAutomaticRichDiffs();
+});
+window.addEventListener("popstate", async () => {
+  console.log(location.href);
+  await getAutomaticRichDiffs();
+});
 window.addEventListener("scroll", () => {
+  if (!location.href.match(/files/)) return;
   scrollHandler();
+});
+window.addEventListener("resize", () => {
+  determineScaleSize();
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
