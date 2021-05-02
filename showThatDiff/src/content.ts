@@ -9,7 +9,6 @@ import {
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
 const swipeBar = document.getElementsByClassName("swipe-bar")[0];
 let scaleSize: number;
-let originalHref: string;
 let popUpSettings: PopUpSettings;
 let popUpOpen = false;
 let diffWindow: Window | null;
@@ -122,8 +121,8 @@ const getAllSwipeButtons = () => {
     .filter((element) => element !== "null");
 };
 const determineScaleSize = () => {
-  const width = window.innerWidth;
-  console.log(width);
+  const width = screen.width;
+  console.log("W: ", width);
   if (width > 1200) {
     console.log("bigger than 1200");
   } else {
@@ -188,7 +187,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   await getAutomaticRichDiffs();
 });
 window.addEventListener("popstate", async () => {
-  console.log(location.href);
   await getAutomaticRichDiffs();
 });
 window.addEventListener("scroll", () => {
