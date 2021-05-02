@@ -17,7 +17,8 @@
   },
   "permissions": [
     "tabs",
-    "*://github.com/*/*"
+    "*://github.com/*/*",
+    "https://render.githubusercontent.com/*"
   ],
   "background": {
     "scripts": ["background.js"],

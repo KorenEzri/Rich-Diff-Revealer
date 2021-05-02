@@ -136,6 +136,7 @@ setTimeout(() => {
 
 
 `;
+
 const host = {
   hostname: "github.com",
   targetUrl:
@@ -189,11 +190,26 @@ const testHost = async () => {
               wins.forEach(function (win) {
                 win.tabs.forEach(function (tab) {
                   if (tab.url.match(/https:\/\/render.githubusercontent.com/)) {
+                    const iframe = createElements("iframe", {
+                      src:
+                        "https://render.githubusercontent.com/diff/img?color_mode=dark&commit=1ca266d144c76a34e7bed8f58aa3315aa32b2477&enc_url1=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f477579536572666174792f616e74642d6578616d706c652f316361323636643134346337366133346537626564386635386161333331356161333262323437372f636c69656e742f73637265656e73686f74732f73686f74732f6d61696e2f686f6d65706167652e706e67&enc_url2=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f477579536572666174792f616e74642d6578616d706c652f613066363263636631396561353035326361386666346362396463386139316461316639373032372f636c69656e742f73637265656e73686f74732f73686f74732f6d61696e2f686f6d65706167652e706e67&path=client%2Fscreenshots%2Fshots%2Fmain%2Fhomepage.png&repository_id=362161525&size1=60985&size2=66395#56dcda5b-3f12-4d42-8f5e-f8cb274c9461",
+                      class: "iframeclass",
+                      width: "900",
+                      height: "600",
+                    });
+                    document.body.appendChild(iframe);
                     windowResults.push({ tab: tab.url, winID: win.id });
                     tests.richDiffWindow.pass = true;
                   }
                 });
               });
+              const documentIframe = document.getElementsByClassName(
+                "iframeclass"
+              )[0];
+              documentIframe.style.marginTop = "-30px";
+              if (documentIframe) {
+                tests.richDiffWindow_isSexy.pass = true;
+              }
               chrome.windows.remove(windowResults[0].winID);
               allTestsRan.push(tests.richDiffWindow);
               allTestsRan.push(tests.richDiffWindow_isSexy);
