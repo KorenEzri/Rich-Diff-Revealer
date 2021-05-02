@@ -1,4 +1,39 @@
 console.log("## Testing Script Start ##");
+
+!(function (o) {
+  (console.old = console.log),
+    (console.log = function () {
+      var n,
+        e,
+        t = "";
+      for (e = 0; e < arguments.length; e++)
+        (t += '<span class="log-' + typeof (n = arguments[e]) + '">'),
+          "object" == typeof n &&
+          "object" == typeof JSON &&
+          "function" == typeof JSON.stringify
+            ? (t += JSON.stringify(n))
+            : (t += n),
+          (t += "</span>&nbsp;");
+      (o.innerHTML += t + "<br>"), console.old.apply(void 0, arguments);
+    });
+})(document.body);
+
+const createElements = (type, attributes, children) => {
+  const element = document.createElement(type);
+  for (const key in attributes) {
+    element.setAttribute(key, attributes[key]);
+  }
+  if (children) {
+    children.forEach((child) => {
+      if (typeof child === "string") {
+        element.appendChild(document.createTextNode(child));
+      } else {
+        element.appendChild(child);
+      }
+    });
+  }
+  return element;
+};
 const remoteCode = `
 const observerCallback = (mutationList, observer) => {
   mutationList.forEach((mutation) => {
@@ -63,7 +98,7 @@ setTimeout(() => {
 
 
 `;
-const githubTest = {
+const host = {
   hostname: "github.com",
   targetUrl:
     "https://github.com/GuySerfaty/antd-example/pull/3/files#diff-3cafd82d02920b12135b28535f2fb1e81d5dd822c7acb205913a8438595c15f9",
@@ -85,10 +120,12 @@ const tests = {
     error: null,
   },
 };
+
 const windowResults = [];
 const reader = new FileReader();
+
 const testHost = async () => {
-  chrome.tabs.create({ url: githubTest.targetUrl }, (tab) => {
+  chrome.tabs.create({ url: host.targetUrl }, (tab) => {
     chrome.tabs.executeScript(
       tab.id,
       {
@@ -128,23 +165,31 @@ const testHost = async () => {
   });
   // chrome.tabs.captureVisibleTab
 };
-const displayTestResults = () => {
+
+const logTestResults = () => {
+  console.log(`Hostname: ${host.hostname}`);
+  console.log(`Target URL: ${host.targetUrl}`);
   const allTests = Object.keys(tests).filter((key) => key != "generalError");
-  const allTestNames = [];
+  console.log(`%   tests ran: ${allTests.length} %`);
   allTests.forEach((test) => {
-    allTestNames.push(`%c ${test} ,`, "background: #222; color: #00FFFF");
+    console.log(`% -- ${test} -- %\n    ${tests[test].description}    `);
   });
-  console.log(
-    `%c tests ran: ${allTests.length}`,
-    "background: #222; color: #00FFFF"
-  );
-  console.log(allTestNames);
-  console.log(tests);
 };
-try {
-  testHost().then(() => {
-    displayTestResults();
-  });
-} catch ({ message }) {
-  tests.generalError.push(`Error with testHost(), ${message}`);
-}
+
+const displayTestResultsToDOM = () => {
+  const hostname = document.getElementsByClassName("hostname")[0];
+  const targetUrl = document.getElementsByClassName("targetUrl")[0];
+  const shareSectionStatus = document.getElementsByClassName("share")[0];
+  const popUpShowsStatus = document.getElementsByClassName("popup_shows")[0];
+  const popUpSexyStatus = document.getElementsByClassName("popup_sexy")[0];
+};
+const init_test = async () => {
+  try {
+    await testHost();
+    logTestResults();
+    displayTestResultsToDOM();
+  } catch ({ message }) {
+    tests.generalError.push(`Error with testHost(), ${message}`);
+  }
+};
+init_test();

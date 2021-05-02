@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <link rel="icon" href="img/icon128.png" />
     <link href='http://fonts.googleapis.com/css?family=Cabin+Condensed' rel='stylesheet' type='text/css'>
-    <script src="https://bundle.run/pixelmatch"></script>    <script src="./tests/testing.js"></script>
+
     <style type="text/css">
       .pass {
         background-color: green;
@@ -32,20 +32,7 @@
   </head>
   <body>
     <h1>Show That Diff Unittest</h1>
-    <div id="hosts">
-      <dl class="host">
-        <dl>
-          <dt class="hostname"></dt>
-          <dd class="targetUrl"></dd>
-          <dt>IMG Url</dt>
-          <dd class="imgUrl">Status</dd>
-          <dt>Next Url</dt>
-          <dd class="nextUrl">Status</dd>
-          <dt>Current Page Number</dt>
-          <dd class="currPage">Status</dd>
-          <dt>Total Pages</dt>
-          <dd class="totalPages">Status</dd>
-      </dl>
-    </div>
+    <pre id="log" class="pass"></pre>
+    <script src="./tests/testing.js"></script>
   </body>
 </html>
