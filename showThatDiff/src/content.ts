@@ -17,13 +17,19 @@ let iframeElement: HTMLIFrameElement;
 document.body.style.overflowX = "hidden";
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.message === "start") {
+  const msg = request.message;
+  if (msg === "yesShare") {
     renderShareContainers();
-  } else {
+    localStorage.setItem("share", "true");
+  } else if (msg === "noShare") {
+    localStorage.setItem("share", "false");
     removeShareLinksFromDOM();
+  } else if (msg === "yesPopup") {
+    localStorage.setItem("popup", "true");
+  } else if (msg === "noPopup") {
+    localStorage.setItem("popup", "false");
   }
 });
-
 const openWindow = (popUpSettings: PopUpSettings) => {
   return window.open(
     popUpSettings.popup,
@@ -47,7 +53,10 @@ const onVisibilityChange = (el: HTMLElement) => {
   }
 };
 const scrollHandler = () => {
-  if (diffWindow) onVisibilityChange(iframeElement);
+  const popupToggle = localStorage.getItem("popup");
+  if (popupToggle === "true") {
+    if (diffWindow) onVisibilityChange(iframeElement);
+  }
 };
 const renderShareContainers = () => {
   const mainContainers = Array.from(
@@ -188,7 +197,7 @@ const clickSwipeButtons = (buttons: (string | Element)[]) => {
     }
   }
 };
-const getAutomaticRichDiffs = async () => {
+const getAutomaticRichDiffs = async (first: string | undefined) => {
   getAndClickRichDiffBtns();
   const getRichDiffs = async () => {
     setTimeout(() => {
@@ -204,16 +213,24 @@ const getAutomaticRichDiffs = async () => {
           makeSliderMove(swipeShell, 848);
         }, 70);
       }
+      if (first) {
+        if (localStorage.getItem("share") === "true") {
+          renderShareContainers();
+        }
+      }
     }, 500);
   };
   await getRichDiffs();
 };
-getAutomaticRichDiffs();
+getAutomaticRichDiffs("first");
 window.addEventListener("DOMContentLoaded", async () => {
-  await getAutomaticRichDiffs();
+  if (localStorage.getItem("share") === "true") {
+    renderShareContainers();
+  }
+  await getAutomaticRichDiffs(undefined);
 });
 window.addEventListener("popstate", async () => {
-  await getAutomaticRichDiffs();
+  await getAutomaticRichDiffs(undefined);
 });
 window.addEventListener("scroll", () => {
   if (!location.href.match(/files/)) return;
