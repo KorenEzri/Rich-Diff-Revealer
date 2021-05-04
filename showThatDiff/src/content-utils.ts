@@ -1,4 +1,4 @@
-import pixelmatch from "pixelmatch";
+import resemblejs from "resemblejs";
 
 export const createElements = (
   type: string,
@@ -158,71 +158,78 @@ export const getContaienrGrandchildrenByClassName = (
   });
   return Array.from(firstChildNodes);
 };
-export const compareImages = (
-  imgBefore: HTMLImageElement,
-  imgAfter: HTMLImageElement
-) => {
-  console.log(imgAfter, imgBefore);
-  console.clear();
-  const canvasBefore = convertImageToCanvas(imgBefore);
-  const canvasAfter = convertImageToCanvas(imgAfter);
-
-  const contextBefore = canvasBefore?.getContext("2d");
-  const contextAfter = canvasAfter?.getContext("2d");
-  if (!canvasBefore) return;
-  let imgDataBefore = contextBefore?.getImageData(
-    0,
-    0,
-    canvasBefore.width,
-    canvasBefore.height
-  );
-  if (!canvasAfter) return;
-  let imgDataAfter = contextAfter?.getImageData(
-    0,
-    0,
-    canvasAfter.width,
-    canvasAfter.height
-  );
-
-  const height: any = imgDataBefore?.height;
-  const width: any = imgDataBefore?.width;
-
-  const imgDataOutput: ImageData = new ImageData(width, height);
-
-  const numDiffPixels = pixelmatch(
-    imgDataBefore?.data,
-    imgDataAfter?.data,
-    imgDataOutput.data,
-    width,
-    height,
-    { threshold: 0.1 }
-  );
-  console.log("numDiffPixels =", numDiffPixels);
-  writeResultToPage(imgDataOutput);
+export const showDiffImage = (iframeContainer: Element) => {
+  const diffImage = document.createElement("img");
+  const deletedImage = document.getElementsByClassName("deleted asset")[0];
+  const addedImage = document.getElementsByClassName("added asset")[0];
+  if (
+    !(deletedImage instanceof HTMLImageElement) ||
+    !(addedImage instanceof HTMLImageElement) ||
+    !location.href.match(/diff/)
+  )
+    return;
+  resemblejs.outputSettings({
+    errorColor: {
+      red: 200,
+      green: 0,
+      blue: 0,
+    },
+  });
+  resemblejs(addedImage?.src)
+    .compareTo(deletedImage?.src)
+    .onComplete((data) => {
+      diffImage.src = data.getImageDataUrl();
+      diffImage.style.width = "750px";
+      diffImage.style.height = "400px";
+      diffImage.classList.add("diff_mage");
+    });
+  iframeContainer.remove();
+  document.body.style.margin = "0px";
+  document.body.appendChild(diffImage);
 };
-const convertImageToCanvas = (imageElement: HTMLImageElement) => {
-  const canvas = document.createElement("canvas");
-  if (!canvas) return;
-  canvas.width = imageElement.width;
-  canvas.height = imageElement.height;
-  canvas.getContext("2d")?.drawImage(imageElement, 0, 0);
-  return canvas;
+export const getAndClickAllSwipeButtons = () => {
+  clickSwipeButtons(getAllSwipeButtons());
 };
-const writeResultToPage = (imgDataOutput: ImageData) => {
-  console.log(
-    "writeResultToPage was called. imgDataOutput.data.length =",
-    imgDataOutput.data.length
+export const getAndClickRichDiffBtns = () => {
+  const allRelevantButtons = document.getElementsByClassName(
+    "btn btn-sm BtnGroup-item tooltipped tooltipped-w rendered js-rendered"
   );
-  const canvas = document.createElement("canvas");
-  canvas.width = imgDataOutput.width;
-  canvas.height = imgDataOutput.height;
-  const canvasContext = canvas.getContext("2d");
-  canvasContext?.putImageData(imgDataOutput, 0, 0);
-  const render_container = document.getElementsByClassName(
-    "render-container js-render-target is-render-automatic is-render-requested is-render-ready"
-  )[0];
-  const render_wrapper = render_container.parentElement;
-  if (!canvasContext || !render_container || !render_wrapper) return;
-  render_wrapper.removeChild(render_container);
-  render_wrapper.appendChild(canvasContext.canvas);
+  Array.from(allRelevantButtons).forEach((button) => {
+    if (button instanceof HTMLElement) {
+      try {
+        button.click();
+      } catch ({ message }) {
+        if (message === "Cannot read property 'remove' of undefined") {
+          return;
+        } else {
+          console.log(message);
+        }
+      }
+    }
+  });
+};
+const getAllSwipeButtons = () => {
+  const allControlButtons = document.getElementsByClassName(
+    "js-view-mode-item"
+  );
+  const allSwipeButtons = Array.from(allControlButtons)
+    .map((button: Element) => {
+      if (button.textContent === "Swipe") {
+        return button;
+      } else return "null";
+    })
+    .filter((element) => element !== "null");
+  return allSwipeButtons;
+};
+const clickSwipeButtons = (buttons: (string | Element)[]) => {
+  const swipeButton: any = buttons[0];
+  try {
+    swipeButton.click();
+  } catch ({ message }) {
+    if (message === "Cannot read property 'click' of undefined") {
+      return;
+    } else {
+      console.log(message);
+    }
+  }
 };

@@ -6,13 +6,15 @@ import {
   removeShareLinksFromDOM,
   getElementsByClassName,
   getContaienrGrandchildrenByClassName,
+  showDiffImage,
+  getAndClickAllSwipeButtons,
+  getAndClickRichDiffBtns,
 } from "./content-utils";
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
 const swipeBar = document.getElementsByClassName("swipe-bar")[0];
 let popUpSettings: PopUpSettings;
 let popUpOpen = false;
 let diffWindow: Window | null;
-let allSwipeButtons: (Element | string)[] = [];
 let iframeElement: HTMLIFrameElement;
 document.body.style.overflowX = "hidden";
 
@@ -28,6 +30,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     localStorage.setItem("popup", "true");
   } else if (msg === "noPopup") {
     localStorage.setItem("popup", "false");
+    diffWindow?.close();
   }
 });
 const openWindow = (popUpSettings: PopUpSettings) => {
@@ -126,40 +129,11 @@ const openDiffWindow = () => {
     }
   });
 };
-const getAndClickRichDiffBtns = () => {
-  const allRelevantButtons = document.getElementsByClassName(
-    "btn btn-sm BtnGroup-item tooltipped tooltipped-w rendered js-rendered"
-  );
-  Array.from(allRelevantButtons).forEach((button) => {
-    if (button instanceof HTMLElement) {
-      try {
-        button.click();
-      } catch ({ message }) {
-        if (message === "Cannot read property 'remove' of undefined") {
-          return;
-        } else {
-          console.log(message);
-        }
-      }
-    }
-  });
-};
-const getAllSwipeButtons = () => {
-  const allControlButtons = document.getElementsByClassName(
-    "js-view-mode-item"
-  );
-  allSwipeButtons = Array.from(allControlButtons)
-    .map((button: Element) => {
-      if (button.textContent === "Swipe") {
-        return button;
-      } else return "null";
-    })
-    .filter((element) => element !== "null");
-};
 const stylePopupWindow = () => {
   const diffWindowContainer = document.getElementsByClassName(
     "render-shell js-render-shell"
   );
+  showDiffImage(Array.from(diffWindowContainer)[0]);
   const controlBar = document.getElementsByClassName(
     "js-render-bar render-bar render-bar-with-modes"
   );
@@ -185,26 +159,13 @@ const stylePopupWindow = () => {
     }
   }
 };
-const clickSwipeButtons = (buttons: (string | Element)[]) => {
-  const swipeButton: any = buttons[0];
-  try {
-    swipeButton.click();
-  } catch ({ message }) {
-    if (message === "Cannot read property 'click' of undefined") {
-      return;
-    } else {
-      console.log(message);
-    }
-  }
-};
 const getAutomaticRichDiffs = async (first: string | undefined) => {
   getAndClickRichDiffBtns();
   const getRichDiffs = async () => {
     setTimeout(() => {
       openDiffWindow();
-      getAllSwipeButtons();
       stylePopupWindow();
-      clickSwipeButtons(allSwipeButtons);
+      getAndClickAllSwipeButtons();
       if (
         swipeShell instanceof HTMLElement &&
         swipeBar instanceof HTMLElement
@@ -222,16 +183,20 @@ const getAutomaticRichDiffs = async (first: string | undefined) => {
   };
   await getRichDiffs();
 };
+
 getAutomaticRichDiffs("first");
+
 window.addEventListener("DOMContentLoaded", async () => {
   if (localStorage.getItem("share") === "true") {
     renderShareContainers();
   }
   await getAutomaticRichDiffs(undefined);
 });
+
 window.addEventListener("popstate", async () => {
   await getAutomaticRichDiffs(undefined);
 });
+
 window.addEventListener("scroll", () => {
   if (!location.href.match(/files/)) return;
   scrollHandler();

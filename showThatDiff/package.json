@@ -36,14 +36,15 @@
     "@types/pixelmatch": "^5.2.3",
     "@types/pngjs": "^6.0.0",
     "@types/react-share": "^3.0.3",
+    "@types/resemblejs": "^3.2.0",
     "jest-image-snapshot": "^4.5.0",
-    "pixelmatch": "^5.2.1",
     "pngjs": "^6.0.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-hot-loader": "^4.13.0",
     "react-share": "^4.4.0",
     "react-switch": "^6.0.0",
-    "react-tiny-link": "^3.6.1"
+    "react-tiny-link": "^3.6.1",
+    "resemblejs": "^3.2.5"
   }
 }

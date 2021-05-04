@@ -18,7 +18,8 @@
   "permissions": [
     "tabs",
     "*://github.com/*/*",
-    "https://render.githubusercontent.com/*"
+    "https://render.githubusercontent.com/*",
+    "storage"
   ],
   "background": {
     "scripts": ["background.js"],
@@ -26,11 +27,13 @@
   },
   "content_scripts": [
     {
+      "matches": ["https://render.githubusercontent.com/*"],
+      "all_frames": true,
+      "js": ["iframe.js"]
+    },
+    {
       "matches": ["https://github.com/*", "https://render.githubusercontent.com/*", "http://127.0.0.1:5500/showThatDiff/src/tests/testing.html"],
       "js": ["content.js"]
-    }, {
-      "matches": ["https://render.githubusercontent.com/*"],
-      "js": ["iframe-content.js"]
     }
   ]
 }

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Header } from "../Header";
+import {SettingsMenu} from "../SettingsMenu"
 import { ReactTinyLink } from "react-tiny-link";
 import Switch from "react-switch";
 
@@ -93,6 +94,7 @@ export const MainPage = () => {
             id="material-switch"
           />
         </label>
+        <SettingsMenu />
       </div>
   );
 };
