@@ -2,13 +2,12 @@ import { PopUpSettings } from "./types";
 import {
   generateShareLinks,
   isElementInViewport,
-  makeSliderMove,
   removeShareLinksFromDOM,
   getElementsByClassName,
   getContaienrGrandchildrenByClassName,
   showDiffImage,
-  getAndClickAllSwipeButtons,
   getAndClickRichDiffBtns,
+  showAutoSlider,
 } from "./content-utils";
 const swipeShell = document.getElementsByClassName("swipe-shell")[0];
 const swipeBar = document.getElementsByClassName("swipe-bar")[0];
@@ -20,15 +19,15 @@ document.body.style.overflowX = "hidden";
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   const msg = request.message;
-  if (msg === "yesShare") {
+  if (msg === "enableShare") {
     renderShareContainers();
     localStorage.setItem("share", "true");
-  } else if (msg === "noShare") {
+  } else if (msg === "disableShare") {
     localStorage.setItem("share", "false");
     removeShareLinksFromDOM();
-  } else if (msg === "yesPopup") {
+  } else if (msg === "enablePopup") {
     localStorage.setItem("popup", "true");
-  } else if (msg === "noPopup") {
+  } else if (msg === "disablePopup") {
     localStorage.setItem("popup", "false");
     diffWindow?.close();
   }
@@ -96,7 +95,7 @@ const handleDiffWindowOpening = (iframeContainers: Element[]) => {
       popUpSettings = {
         popup,
         newwindow: "newWindow",
-        width: "width=750,height=400,titlebar=no,toolbar=no",
+        width: `width=750,height=400,titlebar=no,toolbar=no`,
       };
     }
     diffWindow = openWindow(popUpSettings);
@@ -129,34 +128,22 @@ const openDiffWindow = () => {
     }
   });
 };
-const stylePopupWindow = () => {
+const manipulatePopupWindow = () => {
+  const setter = Number(localStorage.getItem("popup_opts")) || 2;
   const diffWindowContainer = document.getElementsByClassName(
     "render-shell js-render-shell"
   );
-  showDiffImage(Array.from(diffWindowContainer)[0]);
-  const controlBar = document.getElementsByClassName(
-    "js-render-bar render-bar render-bar-with-modes"
-  );
-  const html = document.querySelector("html");
-  const container = diffWindowContainer[0];
-  if (controlBar instanceof HTMLElement) {
-    controlBar.setAttribute("hidden", "true");
-  }
-  if (html instanceof HTMLHtmlElement) {
-    document.body.style.margin = "-10px";
-    html.style.margin = "-10px";
-  }
-  if (container instanceof HTMLElement) {
-    container.style.transform = "scale(0.9)";
-    // container.style.transform = "scale(0.8)";
-    container.style.width = "1px";
-    const containerChild = container.lastElementChild;
-    if (containerChild instanceof HTMLElement) {
-      containerChild.style.transform = "scale(0.9)";
-      // containerChild.style.transform = "scale(0.9)";
-      containerChild.style.marginTop = "-70px";
-      containerChild.style.marginRight = "220px";
-    }
+  switch (setter) {
+    case 1:
+      break;
+    case 2:
+      showDiffImage(Array.from(diffWindowContainer)[0]);
+      break;
+    case 3:
+      showAutoSlider(swipeShell, swipeBar);
+      break;
+    default:
+      break;
   }
 };
 const getAutomaticRichDiffs = async (first: string | undefined) => {
@@ -164,16 +151,7 @@ const getAutomaticRichDiffs = async (first: string | undefined) => {
   const getRichDiffs = async () => {
     setTimeout(() => {
       openDiffWindow();
-      stylePopupWindow();
-      getAndClickAllSwipeButtons();
-      if (
-        swipeShell instanceof HTMLElement &&
-        swipeBar instanceof HTMLElement
-      ) {
-        setInterval(() => {
-          makeSliderMove(swipeShell, 848);
-        }, 70);
-      }
+      manipulatePopupWindow();
       if (first) {
         if (localStorage.getItem("share") === "true") {
           renderShareContainers();
@@ -183,7 +161,6 @@ const getAutomaticRichDiffs = async (first: string | undefined) => {
   };
   await getRichDiffs();
 };
-
 getAutomaticRichDiffs("first");
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -192,11 +169,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
   await getAutomaticRichDiffs(undefined);
 });
-
 window.addEventListener("popstate", async () => {
   await getAutomaticRichDiffs(undefined);
 });
-
 window.addEventListener("scroll", () => {
   if (!location.href.match(/files/)) return;
   scrollHandler();

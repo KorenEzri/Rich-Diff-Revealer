@@ -4,6 +4,33 @@ import {SettingsMenu} from "../SettingsMenu"
 import { ReactTinyLink } from "react-tiny-link";
 import Switch from "react-switch";
 
+const sendShareBarToggleMessage = (bool:boolean) => {
+  chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+    const activeTab: number | undefined = tabs[0].id;
+    if (activeTab && !bool) {
+      localStorage.setItem("share", "true")
+      chrome.tabs.sendMessage(activeTab, { message: "enableShare" });
+    } else if (activeTab && bool) {
+      localStorage.setItem("share", "false")
+      chrome.tabs.sendMessage(activeTab, { message: "disableShare" });
+
+    }
+  });
+};
+const sendPopupToggleRequest = (bool:boolean) => {
+  chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+    const activeTab: number | undefined = tabs[0].id;
+    if (activeTab && !bool) {
+      localStorage.setItem("popup", "true")
+      chrome.tabs.sendMessage(activeTab, { message: "enablePopup" });
+    } else if (activeTab && bool) {
+      localStorage.setItem("popup", "false")
+      chrome.tabs.sendMessage(activeTab, { message: "disablePopup" });
+
+    }
+  });
+};
+
 export const MainPage = () => {
   const [shareActive, setShareActive] = React.useState((localStorage.getItem("share")==="true") || false);
   const [popUpActive, setPopUpActive] = React.useState((localStorage.getItem("popup")==="true") || false);
@@ -16,33 +43,6 @@ export const MainPage = () => {
   const handlePopupToggleChange = (nextChecked: any) => {
     setPopUpActive(nextChecked);
     sendPopupToggleRequest(popUpActive)
-  };
-
-  const sendShareBarToggleMessage = (bool:boolean) => {
-    chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-      const activeTab: number | undefined = tabs[0].id;
-      if (activeTab && !bool) {
-        localStorage.setItem("share", "true")
-        chrome.tabs.sendMessage(activeTab, { message: "yesShare" });
-      } else if (activeTab && bool) {
-        localStorage.setItem("share", "false")
-        chrome.tabs.sendMessage(activeTab, { message: "noShare" });
-
-      }
-    });
-  };
-  const sendPopupToggleRequest = (bool:boolean) => {
-    chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-      const activeTab: number | undefined = tabs[0].id;
-      if (activeTab && !bool) {
-        localStorage.setItem("popup", "true")
-        chrome.tabs.sendMessage(activeTab, { message: "yesPopup" });
-      } else if (activeTab && bool) {
-        localStorage.setItem("popup", "false")
-        chrome.tabs.sendMessage(activeTab, { message: "noPopup" });
-
-      }
-    });
   };
 
   return (

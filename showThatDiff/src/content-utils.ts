@@ -186,9 +186,38 @@ export const showDiffImage = (iframeContainer: Element) => {
   iframeContainer.remove();
   document.body.style.margin = "0px";
   document.body.appendChild(diffImage);
+  return undefined;
 };
-export const getAndClickAllSwipeButtons = () => {
+export const showAutoSlider = (swipeShell: Element, swipeBar: Element) => {
+  const diffWindowContainer = document.getElementsByClassName(
+    "render-shell js-render-shell"
+  );
+  const controlBar = document.getElementsByClassName(
+    "js-render-bar render-bar render-bar-with-modes"
+  );
+  const html = document.querySelector("html");
+  const container = diffWindowContainer[0];
+  if (controlBar instanceof HTMLElement) {
+    controlBar.setAttribute("hidden", "true");
+  }
+  if (html instanceof HTMLHtmlElement) {
+    document.body.style.margin = "-10px";
+    html.style.margin = "-10px";
+  }
+  if (!(container instanceof HTMLElement)) return;
+  container.style.transform = "scale(0.9)";
+  container.style.width = "1px";
+  const containerChild = container.lastElementChild;
+  if (!(containerChild instanceof HTMLElement)) return;
+  containerChild.style.transform = "scale(0.9)";
+  containerChild.style.marginTop = "-70px";
+  containerChild.style.marginRight = "220px";
   clickSwipeButtons(getAllSwipeButtons());
+  if (swipeShell instanceof HTMLElement && swipeBar instanceof HTMLElement) {
+    setInterval(() => {
+      makeSliderMove(swipeShell, 848);
+    }, 70);
+  }
 };
 export const getAndClickRichDiffBtns = () => {
   const allRelevantButtons = document.getElementsByClassName(
