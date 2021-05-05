@@ -162,6 +162,7 @@ export const showDiffImage = (iframeContainer: Element) => {
   const diffImage = document.createElement("img");
   const deletedImage = document.getElementsByClassName("deleted asset")[0];
   const addedImage = document.getElementsByClassName("added asset")[0];
+  console.log(diffImage, deletedImage, addedImage);
   if (
     !(deletedImage instanceof HTMLImageElement) ||
     !(addedImage instanceof HTMLImageElement) ||

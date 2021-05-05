@@ -5,12 +5,35 @@ import {
   removeShareLinksFromDOM,
   getElementsByClassName,
   getContaienrGrandchildrenByClassName,
-  showDiffImage,
   getAndClickRichDiffBtns,
-  showAutoSlider,
 } from "./content-utils";
-
 let iframes: HTMLIFrameElement[];
+let diffWindows: Window[] = [];
+let popUpSettings: PopUpSettings[] = [];
+let popUpOpen = false;
+let index: number;
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  const msg = request.message;
+  if (msg === "enableShare") {
+    renderShareContainers(index);
+    localStorage.setItem("share", "true");
+  } else if (msg === "disableShare") {
+    localStorage.setItem("share", "false");
+    removeShareLinksFromDOM();
+  } else if (msg === "enablePopup") {
+    localStorage.setItem("popup", "true");
+  } else if (msg === "disablePopup") {
+    localStorage.setItem("popup", "false");
+    diffWindows[index]?.close();
+  }
+});
+const openWindow = (popUpSettings: PopUpSettings) => {
+  return window.open(
+    popUpSettings.popup,
+    popUpSettings.newwindow,
+    popUpSettings.width
+  );
+};
 const getiframes = () => {
   const allPageContainers: Element[] = getElementsByClassName(
     "js-file-content"
@@ -31,163 +54,158 @@ const getiframes = () => {
   });
   return iframes;
 };
-const runFlow = (iframeElement: HTMLIFrameElement, index: number) => {
-  const swipeShell = document.getElementsByClassName("swipe-shell")[index];
-  const swipeBar = document.getElementsByClassName("swipe-bar")[index];
-  let popUpSettings: PopUpSettings;
-  let popUpOpen = false;
-  let diffWindow: Window | null;
-  document.body.style.overflowX = "hidden";
-  chrome.runtime.onMessage.addListener(function (
-    request,
-    sender,
-    sendResponse
-  ) {
-    const msg = request.message;
-    if (msg === "enableShare") {
-      renderShareContainers();
-      localStorage.setItem("share", "true");
-    } else if (msg === "disableShare") {
-      localStorage.setItem("share", "false");
-      removeShareLinksFromDOM();
-    } else if (msg === "enablePopup") {
-      localStorage.setItem("popup", "true");
-    } else if (msg === "disablePopup") {
-      localStorage.setItem("popup", "false");
-      diffWindow?.close();
-    }
-  });
-  const openWindow = (popUpSettings: PopUpSettings) => {
-    return window.open(
-      popUpSettings.popup,
-      popUpSettings.newwindow,
-      popUpSettings.width
-    );
+const handleDiffWindowOpening = (iframe: HTMLIFrameElement) => {
+  let popup: string;
+  popup = `${iframe.src}`;
+  const setting = {
+    popup,
+    newwindow: "newWindow",
+    width: `width=750,height=400,titlebar=no,toolbar=no`,
   };
-  const onVisibilityChange = (el: HTMLElement) => {
-    const visible = isElementInViewport(el);
+  popUpSettings.push(setting);
+  const window = openWindow(popUpSettings[popUpSettings.indexOf(setting)]);
+  if (!window) return;
+  diffWindows.push(window);
+  diffWindows[diffWindows.indexOf(window)]?.close();
+};
+// const manipulatePopupWindow = (index: number) => {
+//   // const setter = Number(localStorage.getItem("popup_opts")) || 2;
+//   const swipeShell = document.getElementsByClassName("swipe-shell");
+//   const swipeBar = document.getElementsByClassName("swipe-bar");
+//   const diffWindowContainer = document.getElementsByClassName(
+//     "render-shell js-render-shell"
+//   );
+//   let setter = 2;
+//   console.log(diffWindowContainer, "IDNEX :", index);
+//   console.log(swipeShell, swipeBar);
+//   switch (setter) {
+//     case 1:
+//       break;
+//     case 2:
+//       showDiffImage(Array.from(diffWindowContainer)[index]);
+//       break;
+//     case 3:
+//       showAutoSlider(swipeShell[0], swipeBar[0]);
+//       break;
+//     default:
+//       break;
+//   }
+// };
+const renderShareContainers = (index: number) => {
+  const mainContainers = Array.from(
+    document.getElementsByClassName(
+      "file js-file js-details-container js-targetable-element Details Details--on open display-rich-diff"
+    )
+  );
+  if (mainContainers) {
+    const diffTitle = document.getElementsByClassName(
+      "js-issue-title markdown-title"
+    )[index];
+    mainContainers.forEach((container: Element) => {
+      if (diffTitle.textContent) {
+        generateShareLinks(
+          8,
+          container,
+          window.location.href,
+          `This is a diff I found on our PR: ${diffTitle.textContent.trim()}`
+        );
+      }
+    });
+  }
+};
+const getAutomaticRichDiffs = async (
+  first: string | undefined,
+  iframe: HTMLIFrameElement,
+  index: number
+) => {
+  const getRichDiffs = async () => {
+    setTimeout(() => {
+      handleDiffWindowOpening(iframe);
+      if (first) {
+        if (localStorage.getItem("share") === "true") {
+          renderShareContainers(index);
+        }
+      }
+    }, 500);
+  };
+  try {
+    await getRichDiffs();
+  } catch ({ message }) {
+    console.log(message);
+  }
+};
+const start = async (iframe: HTMLIFrameElement, index: number) => {
+  try {
+    await getAutomaticRichDiffs(undefined, iframe, index);
+  } catch ({ message }) {
+    console.log(message);
+  }
+};
+setTimeout(async () => {
+  try {
+    iframes = getiframes();
+  } catch ({ message }) {
+    console.log(message);
+  }
+  if (iframes && iframes[0]) {
+    iframes.forEach(async (iframe) => {
+      index = iframes.indexOf(iframe);
+      await start(iframe, index);
+    });
+  }
+}, 1200);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+try {
+  getAndClickRichDiffBtns();
+} catch ({ message }) {
+  console.log(message);
+}
+
+window.addEventListener("scroll", () => {
+  if (!location.href.match(/files/)) return;
+  if (!iframes || !iframes[0]) return;
+  iframes.forEach((iframe) => {
+    index = iframes.indexOf(iframe);
+    const visible = isElementInViewport(iframe);
     if (visible && popUpSettings) {
       if (popUpOpen) return;
       popUpOpen = true;
-      diffWindow = window.open(
-        popUpSettings.popup,
-        popUpSettings.newwindow,
-        popUpSettings.width
+      const setting = popUpSettings[index];
+      const newWindow = window.open(
+        setting.popup,
+        setting.newwindow,
+        setting.width
       );
+      if (!newWindow) return;
+      diffWindows[index] = newWindow;
     } else {
       popUpOpen = false;
-      diffWindow?.close();
+      diffWindows[index]?.close();
     }
-  };
-  const scrollHandler = () => {
-    const popupToggle = localStorage.getItem("popup");
-    if (popupToggle === "true") {
-      if (diffWindow) onVisibilityChange(iframeElement);
-    }
-  };
-  const renderShareContainers = () => {
-    const mainContainers = Array.from(
-      document.getElementsByClassName(
-        "file js-file js-details-container js-targetable-element Details Details--on open display-rich-diff"
-      )
-    );
-    if (mainContainers) {
-      const diffTitle = document.getElementsByClassName(
-        "js-issue-title markdown-title"
-      )[index];
-      mainContainers.forEach((container: Element) => {
-        if (diffTitle.textContent) {
-          generateShareLinks(
-            8,
-            container,
-            window.location.href,
-            `This is a diff I found on our PR: ${diffTitle.textContent.trim()}`
-          );
-        }
-      });
-    }
-  };
-  const handleDiffWindowOpening = () => {
-    let popup: string;
-    popup = `${iframeElement.src}`;
-    popUpSettings = {
-      popup,
-      newwindow: "newWindow",
-      width: `width=750,height=400,titlebar=no,toolbar=no`,
-    };
-    diffWindow = openWindow(popUpSettings);
-    diffWindow?.close();
-  };
-  const openDiffWindow = () => {
-    handleDiffWindowOpening();
-  };
-  const manipulatePopupWindow = () => {
-    const setter = Number(localStorage.getItem("popup_opts")) || 2;
-    const diffWindowContainer = document.getElementsByClassName(
-      "render-shell js-render-shell"
-    );
-    switch (setter) {
-      case 1:
-        break;
-      case 2:
-        showDiffImage(Array.from(diffWindowContainer)[index]);
-        break;
-      case 3:
-        showAutoSlider(swipeShell, swipeBar);
-        break;
-      default:
-        break;
-    }
-  };
-  const getAutomaticRichDiffs = async (first: string | undefined) => {
-    getAndClickRichDiffBtns();
-    const getRichDiffs = async () => {
-      setTimeout(() => {
-        openDiffWindow();
-        manipulatePopupWindow();
-        if (first) {
-          if (localStorage.getItem("share") === "true") {
-            renderShareContainers();
-          }
-        }
-      }, 500);
-    };
-    await getRichDiffs();
-  };
-  getAutomaticRichDiffs("first");
-
-  window.addEventListener("DOMContentLoaded", async () => {
-    if (localStorage.getItem("share") === "true") {
-      renderShareContainers();
-    }
-    await getAutomaticRichDiffs(undefined);
-  });
-  window.addEventListener("popstate", async () => {
-    await getAutomaticRichDiffs(undefined);
-  });
-  window.addEventListener("scroll", () => {
-    if (!location.href.match(/files/)) return;
-    scrollHandler();
-  });
-};
-
-setTimeout(() => {
-  iframes = getiframes();
-}, 1200);
-
-getAndClickRichDiffBtns();
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-window.addEventListener("scroll", () => {
-  if (!location.href.match(/files/)) return;
-  iframes.forEach((iframe) => {
-    const visible = isElementInViewport(iframe);
-    if (!visible) return;
-    const index = iframes.indexOf(iframe);
-    console.log("INDEX: ", iframes.indexOf(iframe), "IFRAME: ", visible);
-    const swipeShell = document.getElementsByClassName("swipe-shell")[index];
-    const swipeBar = document.getElementsByClassName("swipe-bar")[index];
-    console.log(swipeShell, swipeBar);
-    // runFlow(iframe, iframes.indexOf(iframe));
   });
 });
+window.addEventListener("DOMContentLoaded", async () => {
+  if (localStorage.getItem("share") === "true") {
+    try {
+      renderShareContainers(index);
+    } catch ({ message }) {
+      console.log(message);
+    }
+  }
+  try {
+    await start(iframes[index], index);
+  } catch ({ message }) {
+    console.log(message);
+  }
+  const diffWindowContainer = document.getElementsByClassName(
+    "render-shell js-render-shell"
+  );
+  console.log(diffWindowContainer, "IDNEX :", index);
+});
+// window.addEventListener("popstate", async () => {
+//   try {
+//     await start(iframes[index], index);
+//   } catch ({ message }) {
+//     console.log(message);
+//   }
+// });
