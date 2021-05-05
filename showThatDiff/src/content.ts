@@ -8,10 +8,9 @@ import {
   showDiffImage,
   getAndClickRichDiffBtns,
   showAutoSlider,
-  clickViewedLinks,
 } from "./content-utils";
-const swipeShell = document.getElementsByClassName("swipe-shell");
-const swipeBar = document.getElementsByClassName("swipe-bar");
+const swipeShell = document.getElementsByClassName("swipe-shell")[0];
+const swipeBar = document.getElementsByClassName("swipe-bar")[0];
 let popUpSettings: PopUpSettings;
 let popUpOpen = false;
 let diffWindow: Window | null;
@@ -68,18 +67,16 @@ const renderShareContainers = () => {
     )
   );
   if (mainContainers) {
-    const diffTitle: any = document.getElementsByClassName(
+    const diffTitle = document.getElementsByClassName(
       "js-issue-title markdown-title"
-    );
-    mainContainers.forEach((container: Element, index: number) => {
-      if (diffTitle[index].textContent) {
+    )[0];
+    mainContainers.forEach((container: Element) => {
+      if (diffTitle.textContent) {
         generateShareLinks(
           8,
           container,
           window.location.href,
-          `This is a diff I found on our PR: ${diffTitle[
-            index
-          ].textContent.trim()}`
+          `This is a diff I found on our PR: ${diffTitle.textContent.trim()}`
         );
       }
     });
@@ -106,8 +103,6 @@ const handleDiffWindowOpening = (iframeContainers: Element[]) => {
   });
 };
 const openDiffWindow = () => {
-  // if (thesame)
-  clickViewedLinks();
   const allPageContainers: Element[] = getElementsByClassName(
     "js-file-content"
   );
@@ -142,14 +137,10 @@ const manipulatePopupWindow = () => {
     case 1:
       break;
     case 2:
-      Array.from(diffWindowContainer).forEach((container) => {
-        showDiffImage(container);
-      });
+      showDiffImage(Array.from(diffWindowContainer)[0]);
       break;
     case 3:
-      for (let i = 0; i < swipeShell.length; i++) {
-        showAutoSlider(swipeShell[i], swipeBar[i]);
-      }
+      showAutoSlider(swipeShell, swipeBar);
       break;
     default:
       break;

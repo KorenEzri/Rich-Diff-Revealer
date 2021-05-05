@@ -93,10 +93,8 @@ export const generateShareLinks = (
   targetToAppend.appendChild(containerDiv);
 };
 export const removeShareLinksFromDOM = () => {
-  const share_container = document.getElementsByClassName("share_container");
-  Array.from(share_container).forEach((container) => {
-    container.remove();
-  });
+  const share_container = document.getElementsByClassName("share_container")[0];
+  share_container.remove();
 };
 export const isElementInViewport = (el: HTMLElement) => {
   let rect;
@@ -161,41 +159,34 @@ export const getContaienrGrandchildrenByClassName = (
   return Array.from(firstChildNodes);
 };
 export const showDiffImage = (iframeContainer: Element) => {
-  const diffImage: any = document.createElement("img");
-  const deletedImage: any = document.getElementsByClassName("deleted asset");
-  const addedImage: any = document.getElementsByClassName("added asset");
-  let thesame;
-  for (let i = 0; i < deletedImage.length; i++) {
-    resemblejs.outputSettings({
-      errorColor: {
-        red: 200,
-        green: 0,
-        blue: 0,
-      },
+  const diffImage = document.createElement("img");
+  const deletedImage = document.getElementsByClassName("deleted asset")[0];
+  const addedImage = document.getElementsByClassName("added asset")[0];
+  if (
+    !(deletedImage instanceof HTMLImageElement) ||
+    !(addedImage instanceof HTMLImageElement) ||
+    !location.href.match(/diff/)
+  )
+    return;
+  resemblejs.outputSettings({
+    errorColor: {
+      red: 200,
+      green: 0,
+      blue: 0,
+    },
+  });
+  resemblejs(addedImage?.src)
+    .compareTo(deletedImage?.src)
+    .onComplete((data) => {
+      diffImage.src = data.getImageDataUrl();
+      diffImage.style.width = "750px";
+      diffImage.style.height = "400px";
+      diffImage.classList.add("diff_mage");
     });
-    if (
-      !(deletedImage[i] instanceof HTMLImageElement) ||
-      !(addedImage[i] instanceof HTMLImageElement) ||
-      !location.href.match(/diff/)
-    )
-      return;
-    resemblejs(addedImage[i]?.src)
-      .compareTo(deletedImage[i]?.src)
-      .onComplete((data) => {
-        // @ts-ignore
-        if (data.misMatchPercentage == 0) {
-          thesame = "These are the same!";
-        }
-        diffImage.src = data.getImageDataUrl();
-        diffImage.style.width = "750px";
-        diffImage.style.height = "400px";
-        diffImage.classList.add("diff_mage");
-      });
-    iframeContainer.remove();
-    document.body.style.margin = "0px";
-    document.body.appendChild(diffImage);
-  }
-  return thesame ? thesame : undefined;
+  iframeContainer.remove();
+  document.body.style.margin = "0px";
+  document.body.appendChild(diffImage);
+  return undefined;
 };
 export const showAutoSlider = (swipeShell: Element, swipeBar: Element) => {
   const diffWindowContainer = document.getElementsByClassName(
@@ -205,29 +196,28 @@ export const showAutoSlider = (swipeShell: Element, swipeBar: Element) => {
     "js-render-bar render-bar render-bar-with-modes"
   );
   const html = document.querySelector("html");
-  Array.from(diffWindowContainer).forEach((container) => {
-    if (controlBar instanceof HTMLElement) {
-      controlBar.setAttribute("hidden", "true");
-    }
-    if (html instanceof HTMLHtmlElement) {
-      document.body.style.margin = "-10px";
-      html.style.margin = "-10px";
-    }
-    if (!(container instanceof HTMLElement)) return;
-    container.style.transform = "scale(0.9)";
-    container.style.width = "1px";
-    const containerChild = container.lastElementChild;
-    if (!(containerChild instanceof HTMLElement)) return;
-    containerChild.style.transform = "scale(0.9)";
-    containerChild.style.marginTop = "-70px";
-    containerChild.style.marginRight = "220px";
-    clickSwipeButtons(getAllSwipeButtons());
-    if (swipeShell instanceof HTMLElement && swipeBar instanceof HTMLElement) {
-      setInterval(() => {
-        makeSliderMove(swipeShell, 848);
-      }, 70);
-    }
-  });
+  const container = diffWindowContainer[0];
+  if (controlBar instanceof HTMLElement) {
+    controlBar.setAttribute("hidden", "true");
+  }
+  if (html instanceof HTMLHtmlElement) {
+    document.body.style.margin = "-10px";
+    html.style.margin = "-10px";
+  }
+  if (!(container instanceof HTMLElement)) return;
+  container.style.transform = "scale(0.9)";
+  container.style.width = "1px";
+  const containerChild = container.lastElementChild;
+  if (!(containerChild instanceof HTMLElement)) return;
+  containerChild.style.transform = "scale(0.9)";
+  containerChild.style.marginTop = "-70px";
+  containerChild.style.marginRight = "220px";
+  clickSwipeButtons(getAllSwipeButtons());
+  if (swipeShell instanceof HTMLElement && swipeBar instanceof HTMLElement) {
+    setInterval(() => {
+      makeSliderMove(swipeShell, 848);
+    }, 70);
+  }
 };
 export const getAndClickRichDiffBtns = () => {
   const allRelevantButtons = document.getElementsByClassName(
@@ -246,12 +236,6 @@ export const getAndClickRichDiffBtns = () => {
       }
     }
   });
-};
-export const clickViewedLinks = () => {
-  const viewedCheckBoxes = document.getElementsByClassName(
-    "js-reviewed-checkbox"
-  );
-  console.log(viewedCheckBoxes);
 };
 const getAllSwipeButtons = () => {
   const allControlButtons = document.getElementsByClassName(
